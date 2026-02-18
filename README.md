@@ -1,114 +1,100 @@
 # Chat with SQL System
 
-A complete "Chat with SQL" system that allows users to ask natural language questions about a large relational database and receive natural language answers. The system uses RAG (Retrieval-Augmented Generation) to handle large schemas efficiently and runs entirely locally using Ollama.
+A complete RAG-based Text-to-SQL system that allows you to ask natural language questions about your database and get conversational answers.
 
-## Architecture
+## 🏗️ Architecture
 
-```ascii
-+-------------+      +----------------+      +------------------+
-|    User     | ---> |    FastAPI     | ---> | ChatPipeline     |
-+-------------+      +----------------+      +------------------+
-                                                      |
-                                                      v
-                                             +------------------+
-                                             |  SchemaIndexer   |
-                                             |   (ChromaDB)     |
-                                             +------------------+
-                                                      |
-                                                      v
-                                             +------------------+
-                                             |   SQLGenerator   |
-                                             |   (Llama 3.2)    |
-                                             +------------------+
-                                                      |
-                                                      v
-                                             +------------------+
-                                             |   SQLValidator   |
-                                             +------------------+
-                                                      |
-                                                      v
-                                             +------------------+
-                                             | DatabaseExecutor |
-                                             |  (PostgreSQL)    |
-                                             +------------------+
-                                                      |
-                                                      v
-                                             +------------------+
-                                             | AnswerGenerator  |
-                                             |   (Llama 3.2)    |
-                                             +------------------+
+```mermaid
+graph TD
+    User[User] -->|Natural Language Question| API[FastAPI Endpoint]
+    API --> Pipeline[RAG Pipeline]
+    Pipeline -->|Retrieve Schema| ChromaDB[ChromaDB (Vector Store)]
+    Pipeline -->|Context + Question| LLM[Ollama (Llama 3.2)]
+    LLM -->|Generate SQL| Validator[SQL Validator]
+    Validator -->|Execute SQL| DB[PostgreSQL Database]
+    DB -->|Results| LLM
+    LLM -->|Natural Language Answer| User
 ```
 
-## Prerequisites
+## 📂 Project Structure
 
-1.  **Install Ollama**: Download from [https://ollama.ai](https://ollama.ai)
-2.  **Pull Models**:
-    ```bash
-    ollama pull llama3.2
-    ollama pull nomic-embed-text
-    ```
-3.  **Start Ollama**:
-    ```bash
-    ollama serve
-    ```
-4.  **PostgreSQL**: Ensure you have a PostgreSQL database running.
+```text
+Chat with SQL/
+├── app/                        # Main application package
+│   ├── api/                    # API endpoints and entry point
+│   │   └── main.py             # FastAPI app
+│   └── core/                   # Core logic modules
+│       ├── pipeline.py         # Orchestration logic
+│       ├── schema_indexer.py   # RAG Indexer
+│       ├── sql_generator.py    # SQL Generation
+│       ├── sql_validator.py    # Safety Checks
+│       ├── db_executor.py      # Database Execution
+│       └── answer_generator.py # Answer Synthesis
+├── database/                   # Database management scripts
+│   ├── create_tables.sql       # DDL Schema
+│   ├── seed_data.py            # Data Seeding
+│   └── verify_data.py          # Data Verification
+├── tests/                      # Testing
+│   └── test_setup.py           # Setup verification
+├── requirements.txt            # Dependencies
+├── .env.example                # Configuration template
+└── PROJECT_STATUS.md           # Current status report
+```
 
-## Setup Instructions
+## 🚀 Getting Started
 
-1.  **Clone the repository** (if applicable).
-2.  **Install dependencies**:
+### Prerequisites
+
+1.  **Ollama**: [Download](https://ollama.ai) and install.
+    -   Run: `ollama serve`
+    -   Pull models: `ollama pull llama3.2` and `ollama pull nomic-embed-text`
+2.  **PostgreSQL**: Installed and running.
+3.  **Python 3.10+**
+
+### Setup
+
+1.  **Install Dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
-3.  **Configure Environment**:
-    - Copy `.env.example` to `.env`
-    - Update `POSTGRES_*` credentials in `.env`
-4.  **Index Schema**:
-    - You can run `python schema_indexer.py` to index the example schema immediately (it contains a `run_indexing()` function).
-    - Or use the API: `POST /index-schema`
-5.  **Start the API**:
+
+2.  **Configure Environment**:
+    -   Copy `.env.example` to `.env`
+    -   Update DB credentials in `.env`
+
+3.  **Setup Database**:
     ```bash
-    uvicorn api:app --reload
+    createdb chatdb
+    psql -d chatdb -f database/create_tables.sql
+    python database/seed_data.py
     ```
 
-## Usage Example
+4.  **Index Schema**:
+    ```bash
+    python -m app.core.schema_indexer
+    ```
+    *(Note: You might need to adjust python path or run a script that imports it correctly if direct module execution has issues with relative imports. Alternatively, use the API endpoint `/index-schema`)*
 
-**Ask a Question:**
+5.  **Run API**:
+    ```bash
+    uvicorn app.api.main:app --reload
+    ```
 
+## 🧪 Usage
+
+**Ask a Question**:
 ```bash
-curl -X POST http://localhost:8000/ask \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "Which 5 customers spent the most money?"
-  }'
+curl -X POST "http://localhost:8000/ask" \
+     -H "Content-Type: application/json" \
+     -d '{"question": "Who are the top 5 customers by spending?"}'
 ```
 
-## How RAG Works
+---
 
-1.  **Indexing**: Database tables are converted into rich text documents describing their columns and relationships. These are embedded using `nomic-embed-text` and stored in ChromaDB.
-2.  **Retrieval**: When a user asks a question, we embed the question and find the most relevant table schemas.
-3.  **Expansion**: We automatically pull in related tables (via Foreign Keys) to ensuring JOINs are possible.
-4.  **Generation**: The LLM receives the question + only the relevant schema (not the whole DB) to generate accurate SQL.
+## 🛠️ Components
 
-## Changing Models
-
-To use different Ollama models, simply update `.env`:
-
-```env
-OLLAMA_LLM_MODEL=mistral
-OLLAMA_EMBED_MODEL=mxbai-embed-large
-```
-
-## Known Limitations
-
--   **Local LLM Accuracy**: Llama 3.2 is powerful but may occasionally make syntax errors compared to GPT-4. The system includes a retry mechanism with error feedback to mitigate this.
--   **Cold Start**: The first request might be slower as Ollama loads the models into memory.
--   **Complex Queries**: Extremely complex nested queries might still challenge smaller local models.
-
-## Troubleshooting
-
--   **Ollama Connection Refused**: Ensure `ollama serve` is running and `OLLAMA_BASE_URL` is correct.
--   **Model Not Found**: Run `ollama list` to check if `llama3.2` and `nomic-embed-text` are pulled.
--   **ChromaDB Dimension Mismatch**: If you change embedding models, delete the `./chroma_db` folder to reset the collection.
--   **PostgreSQL Errors**: Check credentials in `.env` and ensuring the database exists.
--   **Prose in SQL**: If the model is chatty, the `SQLValidator` and `parse_sql_from_response` logic attempts to clean it, but stricter prompting (already implemented) helps.
+-   **Schema Indexer**: Embeds table metadata (columns, relationships) into ChromaDB.
+-   **SQL Generator**: Uses Llama 3.2 to write SQL. Includes specific rules and few-shot prompting.
+-   **SQL Validator**: Using `sqlparse` to validte structure and block harmful commands.
+-   **DB Executor**: Runs queries with `READ ONLY` transaction mode and retry logic.
+-   **Answer Generator**: Synthesizes the final response.

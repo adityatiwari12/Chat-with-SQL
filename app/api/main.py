@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
-from pipeline import ChatWithSQLPipeline, PipelineResult
+from app.core.pipeline import ChatWithSQLPipeline, PipelineResult
 
 app = FastAPI(title="Chat with SQL API", description="RAG-based Text-to-SQL System", version="1.0.0")
 

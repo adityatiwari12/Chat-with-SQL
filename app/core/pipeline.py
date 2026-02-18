@@ -9,11 +9,11 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-from schema_indexer import SchemaIndexer
-from sql_generator import SQLGenerator
-from sql_validator import SQLValidator
-from db_executor import DatabaseExecutor, QueryResult
-from answer_generator import AnswerGenerator
+from .schema_indexer import SchemaIndexer
+from .sql_generator import SQLGenerator
+from .sql_validator import SQLValidator
+from .db_executor import DatabaseExecutor, QueryResult
+from .answer_generator import AnswerGenerator
 
 load_dotenv()
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

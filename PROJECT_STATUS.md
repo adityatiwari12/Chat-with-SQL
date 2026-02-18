@@ -28,20 +28,25 @@ We have successfully built the complete **Chat with SQL** system, including the 
 
 ```text
 Chat with SQL/
-├── api.py                 # FastAPI application entry point
-├── pipeline.py            # Main pipeline orchestrating RAG -> SQL -> Answer
-├── schema_indexer.py      # Indexes DB schema into ChromaDB (RAG)
-├── sql_generator.py       # LLM logic to generate SQL
-├── sql_validator.py       # Security checks for generated SQL
-├── db_executor.py         # PostgreSQL execution client
-├── answer_generator.py    # LLM logic to generate final answer
-├── create_tables.sql      # SQL script to create tables
-├── seed_data.py           # Python script to populate DB with mock data
-├── verify_data.py         # Verifies data integrity
-├── requirements.txt       # Python dependencies
-├── .env.example           # Template for environment variables
-├── PROJECT_STATUS.md      # This file
-└── README.md              # Main documentation
+├── app/                        # Main application package
+│   ├── api/                    # API endpoints and entry point
+│   │   └── main.py             # FastAPI app
+│   └── core/                   # Core logic modules
+│       ├── pipeline.py         # Orchestration logic
+│       ├── schema_indexer.py   # RAG Indexer
+│       ├── sql_generator.py    # SQL Generation
+│       ├── sql_validator.py    # Safety Checks
+│       ├── db_executor.py      # Database Execution
+│       └── answer_generator.py # Answer Synthesis
+├── database/                   # Database management scripts
+│   ├── create_tables.sql       # DDL Schema
+│   ├── seed_data.py            # Data Seeding
+│   └── verify_data.py          # Data Verification
+├── tests/                      # Testing
+│   └── test_setup.py           # Setup verification
+├── requirements.txt            # Dependencies
+├── .env.example                # Configuration template
+└── PROJECT_STATUS.md           # Current status report
 ```
 
 ---
@@ -66,17 +71,19 @@ You need to provision the local PostgreSQL database.
 - **Action**: Update `.env` with your credentials.
 - **Action**: Run the setup scripts:
   ```bash
-  psql -d chatdb -f create_tables.sql
-  python seed_data.py
+  psql -d chatdb -f database/create_tables.sql
+  python database/seed_data.py
   ```
 
 ### 3. Run the System
 Once (1) and (2) are done:
 - **Action**: Index the schema:
-  ```bash
-  python schema_indexer.py
-  ```
+  - You might need to execute Python with module flag or via the API:
+    ```bash
+    python -m app.core.schema_indexer
+    ```
+    *Or use the POST /index-schema API Endpoint.*
 - **Action**: Start the API:
   ```bash
-  uvicorn api:app --reload
+  uvicorn app.api.main:app --reload
   ```
