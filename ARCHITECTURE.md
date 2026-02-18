@@ -12,8 +12,8 @@ graph TD
     API --> Pipeline[RAG Pipeline]
     
     subgraph "Retrieval Layer"
-        Pipeline -->|Embed Question| OllamaER[Ollama Embedding Tool]
-        OllamaER -->|Search| ChromaDB[ChromaDB (Vector Store)]
+        Pipeline -->|Embed Question| OllamaER["Ollama Embedding Tool"]
+        OllamaER -->|Search| ChromaDB["ChromaDB (Vector Store)"]
         ChromaDB -->|Relevant Schema| Pipeline
     end
     
