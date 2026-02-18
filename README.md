@@ -16,6 +16,12 @@ graph TD
     LLM -->|Natural Language Answer| User
 ```
 
+## 📖 Documentation
+
+For a deeper understanding of the system, please refer to:
+- [**Architecture Guide**](ARCHITECTURE.md): Technical deep-dive and data flow.
+- [**Project Improvements**](PROJECT_IMPROVEMENTS.md): Road-map and identified technical enhancements.
+
 ## 📂 Project Structure
 
 ```text
@@ -38,7 +44,8 @@ Chat with SQL/
 │   └── test_setup.py           # Setup verification
 ├── requirements.txt            # Dependencies
 ├── .env.example                # Configuration template
-└── PROJECT_STATUS.md           # Current status report
+├── PROJECT_STATUS.md           # Current status report
+└── ARCHITECTURE.md             # Detailed architecture docs
 ```
 
 ## 🚀 Getting Started
