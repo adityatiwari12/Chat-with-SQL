@@ -10,12 +10,16 @@ from faker import Faker
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+# Load environment variables
+from pathlib import Path
+# Assuming database/ is at root, so parent is root
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Configuration
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
-POSTGRES_DB = os.getenv("POSTGRES_DB", "postgres")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "chatdb") # Default to chatdb to match actual setup
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
 

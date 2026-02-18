@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 from dotenv import load_dotenv
 # We need to import QueryResult from db_executor but to avoid circular imports if any (none here), it's fine.
 # But for type hinting clean-ness, we might redefine or import.
-from db_executor import QueryResult
+from app.core.db_executor import QueryResult
 
 load_dotenv()
 

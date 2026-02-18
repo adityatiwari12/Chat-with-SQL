@@ -65,7 +65,8 @@ class SQLGenerator:
             "5. Always use table aliases (e.g., FROM customers c).\n"
             "6. Always qualify column names with alias (e.g., c.email).\n"
             "7. Add LIMIT clause when user asks for 'top N' or ranking.\n"
-            "8. Do not write any explanation. Do not use markdown. Start your response directly with SELECT.\n\n"
+            "8. Use ILIKE for string definition comparisons (e.g. status ILIKE 'pending') to be case-insensitive.\n"
+            "9. Do not write any explanation. Do not use markdown. Start your response directly with SELECT.\n\n"
             "Schema:\n"
             f"{schema_text}\n"
         )

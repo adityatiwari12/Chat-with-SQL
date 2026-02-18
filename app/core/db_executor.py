@@ -10,7 +10,11 @@ from typing import List, Optional, Any, Tuple
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-load_dotenv()
+from pathlib import Path
+env_path = Path(__file__).resolve().parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
+print(f"Loading .env from: {env_path}")
+print(f"DB Config: {os.getenv('POSTGRES_DB')}")
 
 # Configuration
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
@@ -56,6 +60,9 @@ class DatabaseExecutor:
         conn = None
         try:
             conn = self._get_connection()
+            # Debug connection
+            print(f"Connected to DB: {POSTGRES_DB} User: {POSTGRES_USER} Host: {POSTGRES_HOST}")
+            
             # Set read-only transaction
             conn.set_session(readonly=True) # or separate SQL command
             

@@ -75,10 +75,21 @@ Chat with SQL/
     ```
     *(Note: You might need to adjust python path or run a script that imports it correctly if direct module execution has issues with relative imports. Alternatively, use the API endpoint `/index-schema`)*
 
-5.  **Run API**:
+5.  **Run the Application**:
+
+    You need two terminals:
+
+    **Terminal 1 (Backend API):**
     ```bash
     uvicorn app.api.main:app --reload
     ```
+    *API will be available at http://localhost:8000*
+
+    **Terminal 2 (Frontend UI):**
+    ```bash
+    streamlit run app/ui/streamlit_app.py
+    ```
+    *UI will open at http://localhost:8501*
 
 ## 🧪 Usage
 

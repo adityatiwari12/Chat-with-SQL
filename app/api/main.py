@@ -8,6 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 
+import sys
+import os
+
+# Add project root to python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from app.core.pipeline import ChatWithSQLPipeline, PipelineResult
 
 app = FastAPI(title="Chat with SQL API", description="RAG-based Text-to-SQL System", version="1.0.0")
@@ -121,6 +127,37 @@ async def schema_preview():
         return {"tables": tables}
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/tables/{table_name}/data")
+async def get_table_data(table_name: str, limit: int = 50):
+    """
+    Fetches raw data for a specific table for preview purposes.
+    """
+    # Basic validation to prevent SQL injection (though generic)
+    if not table_name.replace("_", "").isalnum():
+        raise HTTPException(status_code=400, detail="Invalid table name")
+
+    try:
+        # We use the existing executor
+        # Note: formatting table name directly is risky if not validated, but we did basic check above.
+        # Ideally use sql.Identifier in psycopg2 but we are composing string here for our custom executor.
+        query = f"SELECT * FROM {table_name} LIMIT {limit}"
+        
+        # We can bypass validator for this system/admin query or use it? 
+        # Let's just execute directly as it is a system-generated query.
+        result = pipeline.executor.execute_query(query)
+        
+        if result.success:
+            return {
+                "columns": result.columns,
+                "rows": result.rows,
+                "row_count": result.row_count
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result.error_message)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
